@@ -237,26 +237,6 @@ public class CloneHelper {
     }
 
 
-    /*
-     * public QueryBlock deserialiseToQueryBlock(String s, List<Entry<String,
-     * TokenInfo>> listOfTokens) throws ParseException { try { if (null != s &&
-     * s.trim().length() > 0) { String[] bagAndTokens = s.split("@#@"); String[]
-     * functionIdAndBagId = bagAndTokens[0].split(","); String functionId =
-     * functionIdAndBagId[0]; String bagId = functionIdAndBagId[1]; // int size
-     * = Integer.parseInt(functionIdAndBagId[2]); // QueryBlock queryBlock = new
-     * // QueryBlock(Long.parseLong((bagId))); //
-     * queryBlock.setFunctionId(Long.parseLong(functionId)); String tokenString
-     * = bagAndTokens[1]; int queryBlockSize = this.parseAndPopulateQueryBlock(
-     * listOfTokens, tokenString,",","@@::@@"); QueryBlock queryBlock = new
-     * QueryBlock(Long.parseLong((bagId)), queryBlockSize); try {
-     * queryBlock.setFunctionId(Long.parseLong(functionId)); } catch
-     * (NumberFormatException e) { throw e; } return queryBlock; } } catch
-     * (ArrayIndexOutOfBoundsException e) {
-     * System.out.println("EXCEPTION CAUGHT, string: " + s); } catch
-     * (NumberFormatException e) { System.out.println(e.getMessage() +
-     * ", ignoring query: " + s); } throw new ParseException("parsing error",
-     * 0); }
-     */
 
     public QueryBlock getSortedQueryBlock(String s, List<Entry<String, TokenInfo>> listOfTokens) throws ParseException {
         try {
@@ -330,12 +310,9 @@ public class CloneHelper {
                     Entry<String, TokenInfo> entry = new AbstractMap.SimpleEntry<String, TokenInfo>(tokenStr,
                             tokenInfo);
                     listOfTokens.add(entry);
-                    // queryBlockSize += tokenInfo.getFrequency();
 
                 } catch (ArrayIndexOutOfBoundsException e) {
                     logger.error("EXCEPTION CAUGHT, token: " + tokenStr + "," + e.getMessage());
-                    // System.out.println("EXCEPTION CAUGHT, tokenFreq: "+
-                    // tokenAndFreq[1]);
                     logger.error("EXCEPTION CAUGHT, inputString : " + inputString + "," + e.getMessage());
                 } catch (NumberFormatException e) {
                     logger.error("EXCEPTION CAUGHT, inputString : " + inputString + "," + e.getMessage());

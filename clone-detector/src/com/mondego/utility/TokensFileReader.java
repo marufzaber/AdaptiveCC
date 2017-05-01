@@ -48,6 +48,7 @@ public class TokensFileReader {
             }
             String prefix = new String(buf);
             String[] parts = prefix.split(",");
+            
             int ntokens = Integer.parseInt(parts[2]);
 
             if (ntokens > this.maxTokens) {

@@ -32,7 +32,10 @@ public class CandidateProcessor implements IListener, Runnable {
         try {
             // System.out.println( "QCQ size: "+
             // SearchManager.queryCandidatesQueue.size() + Util.debug_thread());
+            
             this.processResultWithFilter();
+            
+            
         } catch (NoSuchElementException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -74,8 +77,8 @@ public class CandidateProcessor implements IListener, Runnable {
         if (SearchManager.isGenCandidateStats) {
             SearchManager.updateNumCandidates(codeBlockIds.size());
         }
-        logger.debug(SearchManager.NODE_PREFIX + ", num candidates: " + codeBlockIds.entrySet().size()
-                + ", query: " + queryBlock.getFunctionId() + "," + queryBlock.getId());
+        //logger.debug(SearchManager.NODE_PREFIX + ", num candidates: " + codeBlockIds.entrySet().size()
+          //      + ", query: " + queryBlock.getFunctionId() + "," + queryBlock.getId());
         for (Entry<Long, CandidateSimInfo> entry : codeBlockIds.entrySet()) {
             long startTime = System.nanoTime();
             Document doc = null;
@@ -108,6 +111,10 @@ public class CandidateProcessor implements IListener, Runnable {
                                     queryBlock.getComputedThreshold(), candidateSize, functionIdCandidate, candidateId);
                         }
                         long estimatedTime = System.nanoTime() - startTime;
+                        
+                        logger.debug(SearchManager.NODE_PREFIX + ", processing candidate : " + candidateId+" in "+estimatedTime/1000+" micros");
+                        
+                        
                         //System.out.println(SearchManager.NODE_PREFIX + " CandidateProcessor, " + candidatePair + " in " + estimatedTime/1000 + " micros");
                         SearchManager.verifyCandidateQueue.send(candidatePair);
                         entry = null;

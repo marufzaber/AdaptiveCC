@@ -13,6 +13,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mondego.indexbased.WordFrequencyStore;
+import com.mondego.indexbased.SearchManager;
+
 
 public class ThreadedChannel<E> {
 
@@ -25,16 +27,29 @@ public class ThreadedChannel<E> {
     public ThreadedChannel(int nThreads, Class clazz) {
         this.executor = Executors.newFixedThreadPool(nThreads);
         this.workerType = clazz;
-        this.semaphore = new Semaphore(nThreads + 2);
+        this.semaphore = new Semaphore(nThreads + 6);
     }
 
     public void send(E e) throws InstantiationException, IllegalAccessException,
             IllegalArgumentException, InvocationTargetException,
             NoSuchMethodException, SecurityException {
-        final Runnable o = this.workerType.getDeclaredConstructor(e.getClass())
+               
+                long startTime = System.nanoTime();
+
+                final Runnable o = this.workerType.getDeclaredConstructor(e.getClass())
                 .newInstance(e);
         try {
+            
+            logger.debug(SearchManager.NODE_PREFIX + " trying to get semaphore lock "
+                          + " in " + startTime);
+            
             semaphore.acquire();
+            long estimatedTime = System.nanoTime() - startTime;
+            
+            logger.debug(SearchManager.NODE_PREFIX + " got semaphore lock "
+                         + " in " + estimatedTime/1000);
+
+            
         } catch (InterruptedException ex) {
             logger.error("Caught interrupted exception " + ex);
         }
@@ -44,6 +59,11 @@ public class ThreadedChannel<E> {
                 public void run() {
                     try {
                         o.run();
+
+                        //System.out.println("Available memory in JVM @ "+ System.currentTimeMillis()+" : "+ Runtime.getRuntime().freeMemory());
+                        //System.out.println("Available processors @ "+ System.currentTimeMillis()+" : "+ Runtime.getRuntime().availableProcessors());
+                        //System.out.println("Total Memory in Use @ "+ System.currentTimeMillis()+" : "+ Runtime.getRuntime().totalMemory());
+
                     } finally {
                         semaphore.release();
                     }

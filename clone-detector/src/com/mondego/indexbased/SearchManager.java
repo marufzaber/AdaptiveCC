@@ -500,8 +500,7 @@ public class SearchManager {
                                                                                // the
                                                                                // output
                                                                                // folder
-                                                                               // instead
-                                                                               // of
+                                                                               // instea                                                                    // of
                                                                                // moving
                                                                                // it.
     }
@@ -688,10 +687,14 @@ public class SearchManager {
 
     private void doIndex() throws InterruptedException, FileNotFoundException {
         File datasetDir = new File(SearchManager.DATASET_DIR);
+        System.out.println(SearchManager.DATASET_DIR+"  oleole");
+
         if (datasetDir.isDirectory()) {
             logger.info("Directory: " + datasetDir.getAbsolutePath());
             for (File inputFile : Util.getAllFilesRecur(datasetDir)) {
                 logger.info("indexing file: " + inputFile.getAbsolutePath());
+                if(inputFile.getName().charAt(0)!='.'){
+
                 try {
                     TokensFileReader tfr = new TokensFileReader(
                             SearchManager.NODE_PREFIX, inputFile,
@@ -748,6 +751,7 @@ public class SearchManager {
                     e.printStackTrace();
                     System.exit(1);
                 }
+            }
             }
         } else {
             logger.error("File: " + datasetDir.getName()

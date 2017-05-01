@@ -1,4 +1,4 @@
-#!/bin/bash
+a#!/bin/bash
 # run this script on master
 scriptPATH=`realpath $0`
 rootPATH=`dirname $scriptPATH`
