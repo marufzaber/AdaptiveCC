@@ -1,0 +1,6 @@
+index_time, globalTokenPositionCreationTime,num_candidates, num_clonePairs, total_run_time, searchTime,timeSpentInSearchingCandidates,timeSpentInProcessResult,operation,sortTime_during_indexing
+0,0,0,0,2795176236,0,0,0,init
+3585,60,0,0,3820068755,0,0,0,index,0
+index_time, globalTokenPositionCreationTime,num_candidates, num_clonePairs, total_run_time, searchTime,timeSpentInSearchingCandidates,timeSpentInProcessResult,operation,sortTime_during_indexing
+0,0,0,26,2652184854,2516,0,0,search
+0,0,0,26,3418269838,3264,0,0,search

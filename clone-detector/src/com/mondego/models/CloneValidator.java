@@ -8,9 +8,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mondego.indexbased.SearchManager;
+import com.mondego.interfaces.CloneValidatorInterface;
 import com.mondego.utility.Util;
 
-public class CloneValidator implements IListener, Runnable {
+public class CloneValidator implements CloneValidatorInterface, Runnable {
     private CandidatePair candidatePair;
     private static final Logger logger = LogManager.getLogger(CloneValidator.class);
     public CloneValidator(CandidatePair candidatePair) {
@@ -47,17 +48,10 @@ public class CloneValidator implements IListener, Runnable {
         }
     }
 
-    private void validate(CandidatePair candidatePair)
+    public void validate(CandidatePair candidatePair)
             throws InterruptedException, InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, SecurityException {
-        /*
-         * System.out.println(SearchManager.NODE_PREFIX + "validating, " +
-         * candidatePair.candidateId + "query: " +
-         * candidatePair.queryBlock.getFunctionId() + "," +
-         * candidatePair.queryBlock.getId());
-         */
-
-        // long start_time = System.currentTimeMillis();
+        
         long startTime = System.nanoTime();
         if (candidatePair.candidateTokens != null && candidatePair.candidateTokens.trim().length() > 0) {
             int similarity = this.updateSimilarity(candidatePair.queryBlock, candidatePair.candidateTokens,
@@ -66,35 +60,21 @@ public class CloneValidator implements IListener, Runnable {
                 com.mondego.models.ClonePair cp = new ClonePair(candidatePair.queryBlock.getFunctionId(), candidatePair.queryBlock.getId(),
                         candidatePair.functionIdCandidate, candidatePair.candidateId);
 
-                /*
-                 * long end_time = System.currentTimeMillis(); Duration
-                 * duration; try { duration =
-                 * DatatypeFactory.newInstance().newDuration( end_time -
-                 * start_time); System.out.printf(SearchManager.NODE_PREFIX +
-                 * ", validated: " + candidatePair.candidateId + "query: " +
-                 * candidatePair.queryBlock.getFunctionId() + "," +
-                 * candidatePair.queryBlock.getId() +
-                 * " time taken: %02dh:%02dm:%02ds", duration.getDays() 24 +
-                 * duration.getHours(), duration.getMinutes(),
-                 * duration.getSeconds()); start_time = end_time;
-                 * logger.debug(); } catch (DatatypeConfigurationException
-                 * e) { e.printStackTrace(); }
-                 */
+                
                 long estimatedTime = System.nanoTime() - startTime;
-                logger.debug(SearchManager.NODE_PREFIX + " CloneValidator, QueryBlock " + candidatePair + " in " + estimatedTime/1000 + " micros");
+                logger.debug(SearchManager.NODE_PREFIX + " CloneValidator, QueryBlock " + candidatePair + " in " + estimatedTime/1000 + " micros " + candidatePair.queryBlock.getFunctionId() + " " +
+                             candidatePair.queryBlock.getId());
+                SearchManager.updateRunTime(estimatedTime/1000, this.getClass().getTypeName());
+
                 SearchManager.reportCloneQueue.send(cp);
             }
-            /*
-             * candidatePair.queryBlock = null; candidatePair.simInfo = null;
-             * candidatePair = null;
-             */
-
+            
         } else {
             logger.debug("tokens not found for document");
         }
     }
 
-    private int updateSimilarity(QueryBlock queryBlock, String tokens, int computedThreshold, int candidateSize,
+    public int updateSimilarity(QueryBlock queryBlock, String tokens, int computedThreshold, int candidateSize,
             CandidateSimInfo simInfo) {
         int tokensSeenInCandidate = 0;
         int similarity = simInfo.similarity;
@@ -148,12 +128,13 @@ public class CloneValidator implements IListener, Runnable {
         }
         return -1;
     }
-
+    
     private int updateSimilarityHelper(CandidateSimInfo simInfo, TokenInfo tokenInfo, int similarity,
             int candidatesTokenFreq) {
         simInfo.queryMatchPosition = tokenInfo.getPosition();
         similarity += Math.min(tokenInfo.getFrequency(), candidatesTokenFreq);
-        // System.out.println("similarity: "+ similarity);
         return similarity;
     }
+
+    
 }

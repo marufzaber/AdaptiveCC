@@ -18,16 +18,17 @@ import org.apache.lucene.document.Document;
 import com.mondego.indexbased.CustomCollectorFwdIndex;
 import com.mondego.indexbased.SearchManager;
 import com.mondego.indexbased.TermSearcher;
+import com.mondego.interfaces.CandidateProcessorInterface;
 
-public class CandidateProcessor implements IListener, Runnable {
+public class CandidateProcessor implements  CandidateProcessorInterface, Runnable {
     private QueryCandidates qc;
     private static final Logger logger = LogManager.getLogger(CandidateProcessor.class);
     public CandidateProcessor(QueryCandidates qc) {
         // TODO Auto-generated constructor stub
         this.qc = qc;
     }
-
-    @Override
+  
+    
     public void run() {
         try {
             // System.out.println( "QCQ size: "+
@@ -62,8 +63,9 @@ public class CandidateProcessor implements IListener, Runnable {
         }
 
     }
+   
 
-    private void processResultWithFilter()
+    public void processResultWithFilter()
             throws InterruptedException, InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, SecurityException {
         // System.out.println("HERE, thread_id: " + Util.debug_thread() +
@@ -112,8 +114,9 @@ public class CandidateProcessor implements IListener, Runnable {
                         }
                         long estimatedTime = System.nanoTime() - startTime;
                         
-                        logger.debug(SearchManager.NODE_PREFIX + ", processing candidate : " + candidateId+" in "+estimatedTime/1000+" micros");
+                        logger.debug(SearchManager.NODE_PREFIX + ", processing candidate : " + candidateId+" in "+estimatedTime/1000+" micros "+candidatePair.queryBlock.getFunctionId() + " " + candidatePair.queryBlock.getId());
                         
+                        SearchManager.updateRunTime(estimatedTime/1000, this.getClass().getTypeName());
                         
                         //System.out.println(SearchManager.NODE_PREFIX + " CandidateProcessor, " + candidatePair + " in " + estimatedTime/1000 + " micros");
                         SearchManager.verifyCandidateQueue.send(candidatePair);

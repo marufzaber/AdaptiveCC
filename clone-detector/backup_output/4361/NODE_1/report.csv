@@ -1,0 +1,10 @@
+index_time, globalTokenPositionCreationTime,num_candidates, num_clonePairs, total_run_time, searchTime,timeSpentInSearchingCandidates,timeSpentInProcessResult,operation,sortTime_during_indexing
+0,0,0,0,13116694299,0,0,0,init
+9451,204,0,0,10077655458,0,0,0,index,0
+index_time, globalTokenPositionCreationTime,num_candidates, num_clonePairs, total_run_time, searchTime,timeSpentInSearchingCandidates,timeSpentInProcessResult,operation,sortTime_during_indexing
+0,0,0,26,15486772494,15011,0,0,search
+0,0,0,26,9462362312,9038,0,0,search
+0,0,0,26,10231232995,9660,0,0,search
+0,0,0,26,9909510921,9383,0,0,search
+0,0,0,26,11607266212,11097,0,0,search
+0,0,0,26,8178321299,7705,0,0,search

@@ -4,9 +4,11 @@
 package com.mondego.indexbased;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
@@ -21,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import net.jmatrix.eproperties.EProperties;
@@ -95,6 +98,8 @@ public class SearchManager {
     public static ThreadedChannel<QueryCandidates> queryCandidatesQueue;
     public static ThreadedChannel<CandidatePair> verifyCandidateQueue;
     public static ThreadedChannel<ClonePair> reportCloneQueue;
+    
+    public static MonitorListener monitorListener;
 
     public static ThreadedChannel<Bag> bagsToSortQueue;
     public static ThreadedChannel<Bag> bagsToInvertedIndexQueue;
@@ -108,11 +113,59 @@ public class SearchManager {
     private static EProperties properties = new EProperties();
 
     public static Object lock = new Object();
-    private int qlq_thread_count;
-    private int qbq_thread_count;
-    private int qcq_thread_count;
-    private int vcq_thread_count;
-    private int rcq_thread_count;
+    private static int qlq_thread_count;
+    private static int qbq_thread_count;
+    private static int qcq_thread_count;
+    private static  int vcq_thread_count;
+    private static int rcq_thread_count;
+    
+    private static String mode ="";
+    
+    private static long query_count;
+    
+    public static long get_Query_count() {
+		return query_count;
+	}
+
+	public static void inc_query_count() {
+		SearchManager.query_count++;
+	}
+
+	public static String getMode() {
+		return mode;
+	}
+
+	public static void setMode(String mode) {
+		SearchManager.mode = mode;
+	}
+
+	private static double qlq_avg_rt;
+    private static double qbq_avg_rt;
+    private static double qcq_avg_rt;
+    private static double vcq_avg_rt;
+    private static double rcq_avg_rt;
+    
+    private static double qlq_avg_wt;
+    private static double qbq_avg_wt;
+    private static double qcq_avg_wt;
+    private static double vcq_avg_wt;
+    private static double rcq_avg_wt;
+    
+    private static int qlq_rt_count;
+    private static int qbq_rt_count;
+    private static int qcq_rt_count;
+    private static int vcq_rt_count;
+    private static int rcq_rt_count;
+
+    private static int qlq_wt_count;
+    private static int qbq_wt_count;
+    private static int qcq_wt_count;
+    private static int vcq_wt_count;
+    private static int rcq_wt_count;
+    
+    
+    private static long startTime;
+    
     private int threadsToProcessBagsToSortQueue;
     private int threadToProcessIIQueue;
     private int threadsToProcessFIQueue;
@@ -136,9 +189,18 @@ public class SearchManager {
     private static final Logger logger = LogManager
             .getLogger(SearchManager.class);
     public static boolean FATAL_ERROR;
+    
+    public static long estimated;
+	public static boolean completed = false;
+	
+    public static String filerecord = "";
+
 
     public SearchManager(String[] args) throws IOException {
-        SearchManager.clonePairsCount = 0;
+        
+        query_count = 0;
+    	
+    	SearchManager.clonePairsCount = 0;
         this.cloneHelper = new CloneHelper();
         this.timeSpentInProcessResult = 0;
         SearchManager.timeSpentInSearchingCandidates = 0;
@@ -150,6 +212,33 @@ public class SearchManager {
         this.appendToExistingFile = true;
         SearchManager.ramBufferSizeMB = 100 * 1;
         this.bagsSortTime = 0;
+        
+        this.qlq_avg_rt = 0;
+        this.qbq_avg_rt = 0;
+        this.qcq_avg_rt = 0;
+        this.vcq_avg_rt = 0;
+        this.rcq_avg_rt = 0;
+        
+        this.qlq_avg_wt = 0;
+        this.qbq_avg_wt = 0;
+        this.qcq_avg_wt = 0;
+        this.vcq_avg_wt = 0;
+        this.rcq_avg_wt = 0;
+        
+        this.qlq_wt_count = 0;
+        this.qbq_wt_count = 0;
+        this.qcq_wt_count = 0;
+        this.vcq_wt_count = 0;
+        this.rcq_wt_count = 0;
+
+        
+        this.qlq_rt_count = 0;
+        this.qbq_rt_count = 0;
+        this.qcq_rt_count = 0;
+        this.vcq_rt_count = 0;
+        this.rcq_rt_count = 0;
+        
+        
         SearchManager.ACTION = args[0];
         SearchManager.statusCounter = 0;
         SearchManager.globalWordFreqMap = new HashMap<String, Long>();
@@ -157,7 +246,11 @@ public class SearchManager {
 
             SearchManager.th = (Float.parseFloat(args[1])
                     * SearchManager.MUL_FACTOR);
-
+            
+            
+            
+            
+            
             this.qlq_thread_count = Integer
                     .parseInt(properties.getProperty("QLQ_THREADS", "1"));
             this.qbq_thread_count = Integer
@@ -200,6 +293,19 @@ public class SearchManager {
                     + this.qcq_thread_count + " VCQ_THREADS: "
                     + this.vcq_thread_count + " RCQ_THREADS: "
                     + this.rcq_thread_count + System.lineSeparator());
+            
+            qlq_thread_count = 1;
+        	
+        	qbq_thread_count = 1;
+        			
+        	qcq_thread_count = 1;
+        			
+        	vcq_thread_count = 1;
+        			
+        	rcq_thread_count = 1;
+            
+            
+            
             SearchManager.queryLineQueue = new ThreadedChannel<String>(
                     this.qlq_thread_count, QueryLineProcessor.class);
             SearchManager.queryBlockQueue = new ThreadedChannel<QueryBlock>(
@@ -293,6 +399,10 @@ public class SearchManager {
     public static void main(String[] args)
             throws IOException, ParseException, InterruptedException {
         long start_time = System.nanoTime();
+        startTime =  start_time;
+        
+        
+        
         logger.info("user.dir is: " + System.getProperty("user.dir"));
         logger.info("root dir is:" + System.getProperty("properties.rootDir"));
         SearchManager.ROOT_DIR = System.getProperty("properties.rootDir");
@@ -374,9 +484,29 @@ public class SearchManager {
             logger.info("indexing over!");
             theInstance.timeIndexing = System.currentTimeMillis() - begin_time;
         } else if (SearchManager.ACTION.equalsIgnoreCase(ACTION_SEARCH)) {
-            theInstance.initSearchEnv();
+           // monitorListener = new MonitorListener();
+        	qlq_thread_count = 1;
+        	
+        	qbq_thread_count = 1;
+        			
+        	qcq_thread_count = 1;
+        			
+        	vcq_thread_count = 1;
+        			
+        	rcq_thread_count = 1;
+        	
+        	
+        	monitorListener = new MonitorListener();
+            monitorListener.start();
+            
+            
+            
+        	theInstance.initSearchEnv();
             long timeStartSearch = System.currentTimeMillis();
             logger.info(NODE_PREFIX + " Starting to search");
+            Random rand = new Random();
+            filerecord = mode + rand.nextInt(10000)+".txt";
+            
             theInstance.populateCompletedQueries();
             theInstance.findCandidates();
 
@@ -398,12 +528,13 @@ public class SearchManager {
                 while (true) {
                     if (allNodesCompleted()) {
                         theInstance.backupInput();
+                        //System.out.println("The completed time : "+(System.currentTimeMillis()-timeStartSearch));
                         break;
                     } else {
                         logger.info("waiting for all nodes to complete, check "
                                 + SearchManager.completedNodes
                                 + " file to see the list of completed nodes");
-                        Thread.sleep(4000);
+                        Thread.sleep(1000);
                     }
                 }
             }
@@ -412,7 +543,11 @@ public class SearchManager {
             wfs.populateLocalWordFreqMap();
         }
         long estimatedTime = System.nanoTime() - start_time;
+        estimated = estimatedTime / 1000;
         logger.info("Total run Time: " + (estimatedTime / 1000) + " micors");
+        System.out.println("Total run Time: " + (estimatedTime / 1000) + " micors");
+        runtime_record (SearchManager.ACTION +" Total run Time: " + (estimatedTime / 1000000) + " Millisecond");
+        
         logger.info("number of clone pairs detected: "
                 + SearchManager.clonePairsCount);
         theInstance.timeTotal = estimatedTime;
@@ -427,10 +562,85 @@ public class SearchManager {
         } catch (Exception e) {
             logger.error("exception caught in main " + e.getMessage());
         }
+        
+        completed  = true;
+        
         logger.info("completed on " + SearchManager.NODE_PREFIX);
-    }
+        
+        
+   }
+   
+    
+    public static void query_record () {
 
-    private void readAndUpdateRunMetadata() {
+        BufferedWriter bw = null;
+
+        try {
+           // APPEND MODE SET HERE
+           bw = new BufferedWriter(new FileWriter(filerecord, true));
+           
+           long estimatedTime = System.nanoTime() - startTime;
+           estimatedTime = estimatedTime / 1000000;
+           
+           bw.write(get_Query_count()+" , "+estimatedTime);
+           bw.newLine();
+           bw.flush();
+        } 
+        
+        catch (IOException ioe) {
+        	ioe.printStackTrace();
+        } 
+        finally {                       // always close the file
+        	if (bw != null) 
+        		try {
+        			bw.close();
+        		} 
+        	    catch (IOException ioe2) {
+  	    // just ignore it
+        	    }
+        } // end try/catch/finally
+
+     }
+
+    private static void runtime_record (String runtime) {
+
+        BufferedWriter bw = null;
+
+        try {
+           // APPEND MODE SET HERE
+           bw = new BufferedWriter(new FileWriter("runtimes.txt", true));
+           
+           bw.write(mode+"  :  "+runtime);
+           bw.newLine();
+           bw.flush();
+        } 
+        
+        catch (IOException ioe) {
+        	ioe.printStackTrace();
+        } 
+        finally {                       // always close the file
+        	if (bw != null) 
+        		try {
+        			bw.close();
+        		} 
+        	    catch (IOException ioe2) {
+  	    // just ignore it
+        	    }
+        } // end try/catch/finally
+
+     }
+
+    
+    
+    public static long getStartTime() {
+		return startTime;
+	}
+
+	public static void setStartTime(long startTime) {
+		SearchManager.startTime = startTime;
+	}
+
+	private void readAndUpdateRunMetadata() {
 
         this.readRunMetadata();
         // update the runMetadata
@@ -517,7 +727,7 @@ public class SearchManager {
         completedNodesFile.delete();// delete the completedNodes file
     }
 
-    private static boolean allNodesCompleted() {
+    public static boolean allNodesCompleted() {
         return 0 == (getNodes() - getCompletedNodes());
     }
 
@@ -570,6 +780,49 @@ public class SearchManager {
             }
         }
         return SearchManager.totalNodes;
+    }
+    
+    public static void update_thread_count(int [] configuration){
+    	
+    	if(configuration[0] != qlq_thread_count){
+    		System.out.println("Updating pool-2 cause : config "+qlq_thread_count+" but now "
+    				+configuration[0]);
+    		qlq_thread_count = configuration[0];
+    		queryLineQueue.update_thread(configuration[0]);
+    	}
+    	
+    	if(configuration[1] != qbq_thread_count){
+    		System.out.println("Updating pool-3 cause : config "+qbq_thread_count+" but now "
+    				+configuration[1]);
+    		qbq_thread_count = configuration[1];
+    		queryBlockQueue.update_thread(configuration[1]);
+    	}
+    	
+        
+    	if(configuration[2] != qcq_thread_count){
+    		System.out.println("Updating pool-4 cause : config "+qcq_thread_count+" but now "
+    				+configuration[2]);
+    		qcq_thread_count = configuration[2];
+    		queryCandidatesQueue.update_thread(configuration[2]);
+    	}
+    	
+    	
+    	if(configuration[3] != vcq_thread_count){
+    		System.out.println("Updating pool-5 cause : config "+vcq_thread_count+" but now "
+    				+configuration[3]);
+    		vcq_thread_count = configuration[3];
+    		verifyCandidateQueue.update_thread(configuration[3]);
+    	}
+    	
+    	if(configuration[4] != rcq_thread_count){
+    		System.out.println("Updating pool-6 cause : config "+rcq_thread_count+" but now "
+    				+configuration[4]);
+    		rcq_thread_count = configuration[4];
+    		reportCloneQueue.update_thread(configuration[4]);
+    	}
+        
+        
+        
     }
 
     private static void signOffNode() {
@@ -684,10 +937,102 @@ public class SearchManager {
         }
         Util.writeToFile(this.reportWriter, header, true);
     }
+    
+    
+    public static void flushWaitAndRunTime(){
+    	qlq_avg_rt = qlq_avg_wt = qbq_avg_rt = qbq_avg_wt 
+    			= qcq_avg_rt = qcq_avg_wt = vcq_avg_rt = vcq_avg_wt
+    			= rcq_avg_rt = rcq_avg_wt = 0;
+    	
+    	qlq_wt_count = qlq_rt_count = qbq_rt_count =  qbq_wt_count
+    			= qcq_rt_count = qcq_wt_count = vcq_rt_count
+    			= vcq_wt_count = rcq_rt_count = rcq_wt_count = 0;
+    }
+    
+    public static synchronized void updateWaitTime(long wait,String clazz){
+    	
+    	double temp;
+    	if(clazz.contains("QueryLineProcessor")){
+    		temp = qlq_avg_wt * qlq_wt_count;
+    		temp += wait;
+    		qlq_wt_count++;
+    		qlq_avg_wt = (double)(temp/(double)qlq_wt_count);
+    	}
+    	
+    	else if(clazz.contains("CandidateSearcher")){
+    		temp = qbq_avg_wt * qbq_wt_count;
+    		temp += wait;
+    		qbq_wt_count++;
+    		qbq_avg_wt = (double)(temp/(double)qbq_wt_count);
+    	}
+    	
+    	else if(clazz.contains("CandidateProcessor")){
+    		temp = qcq_avg_wt * qcq_wt_count;
+    		temp += wait;
+    		qcq_wt_count++;
+    		qcq_avg_wt = (double)(temp/(double)qcq_wt_count);
+    	}
+    	
+    	else if(clazz.contains("CloneValidator")){
+    		temp = vcq_avg_wt * vcq_wt_count;
+    		temp += wait;
+    		vcq_wt_count++;
+    		vcq_avg_wt = (double)(temp/(double)vcq_wt_count);
+    	}
+    	
+    	else if(clazz.contains("CloneReporter")){
+    		temp = rcq_avg_wt * rcq_wt_count;
+    		temp += wait;
+    		rcq_wt_count++;
+    		rcq_avg_wt = (double)(temp/(double)rcq_wt_count);
+    	}
+    	
+    }
+    
+public static synchronized void updateRunTime(long wait,String clazz){
+    	
+    	double temp;
+    	if(clazz.contains("QueryLineProcessor")){
+    		temp = qlq_avg_rt * qlq_rt_count;
+    		temp += wait;
+    		qlq_rt_count++;
+    		qlq_avg_rt = (double)(temp/(double)qlq_rt_count);
+    	}
+    	
+    	else if(clazz.contains("CandidateSearcher")){
+    		temp = qbq_avg_rt * qbq_rt_count;
+    		temp += wait;
+    		qbq_rt_count++;
+    		qbq_avg_rt = (double)(temp/(double)qbq_rt_count);
+    	}
+    	
+    	else if(clazz.contains("CandidateProcessor")){
+    		temp = qcq_avg_rt * qcq_rt_count;
+    		temp += wait;
+    		qcq_rt_count++;
+    		qcq_avg_rt = (double)(temp/(double)qcq_rt_count);
+    	}
+    	
+    	else if(clazz.contains("CloneValidator")){
+    		temp = vcq_avg_rt * vcq_rt_count;
+    		temp += wait;
+    		vcq_rt_count++;
+    		vcq_avg_rt = (double)(temp/(double)vcq_rt_count);
+    	}
+    	
+    	else if(clazz.contains("CloneReporter")){
+    		temp = rcq_avg_rt * rcq_rt_count;
+    		temp += wait;
+    		rcq_rt_count++;
+    		rcq_avg_rt = (double)(temp/(double)rcq_rt_count);
+    		//System.out.println("clone reporter updated "+rcq_avg_rt);
+    	}   	
+    }
+
 
     private void doIndex() throws InterruptedException, FileNotFoundException {
         File datasetDir = new File(SearchManager.DATASET_DIR);
-        System.out.println(SearchManager.DATASET_DIR+"  oleole");
+       // System.out.println(SearchManager.DATASET_DIR+"  oleole");
 
         if (datasetDir.isDirectory()) {
             logger.info("Directory: " + datasetDir.getAbsolutePath());
@@ -760,7 +1105,87 @@ public class SearchManager {
         }
     }
 
-    private void findCandidates() throws InterruptedException {
+    public static double getQlq_avg_rt() {
+		return qlq_avg_rt;
+	}
+
+	public static void setQlq_avg_rt(double qlq_avg_rt) {
+		SearchManager.qlq_avg_rt = qlq_avg_rt;
+	}
+
+	public static double getQbq_avg_rt() {
+		return qbq_avg_rt;
+	}
+
+	public static void setQbq_avg_rt(double qbq_avg_rt) {
+		SearchManager.qbq_avg_rt = qbq_avg_rt;
+	}
+
+	public static double getQcq_avg_rt() {
+		return qcq_avg_rt;
+	}
+
+	public static void setQcq_avg_rt(double qcq_avg_rt) {
+		SearchManager.qcq_avg_rt = qcq_avg_rt;
+	}
+
+	public static double getVcq_avg_rt() {
+		return vcq_avg_rt;
+	}
+
+	public static void setVcq_avg_rt(double vcq_avg_rt) {
+		SearchManager.vcq_avg_rt = vcq_avg_rt;
+	}
+
+	public static double getRcq_avg_rt() {
+		return rcq_avg_rt;
+	}
+
+	public static void setRcq_avg_rt(double rcq_avg_rt) {
+		SearchManager.rcq_avg_rt = rcq_avg_rt;
+	}
+
+	public static double getQlq_avg_wt() {
+		return qlq_avg_wt;
+	}
+
+	public static void setQlq_avg_wt(double qlq_avg_wt) {
+		SearchManager.qlq_avg_wt = qlq_avg_wt;
+	}
+
+	public static double getQbq_avg_wt() {
+		return qbq_avg_wt;
+	}
+
+	public static void setQbq_avg_wt(double qbq_avg_wt) {
+		SearchManager.qbq_avg_wt = qbq_avg_wt;
+	}
+
+	public static double getQcq_avg_wt() {
+		return qcq_avg_wt;
+	}
+
+	public static void setQcq_avg_wt(double qcq_avg_wt) {
+		SearchManager.qcq_avg_wt = qcq_avg_wt;
+	}
+
+	public static double getVcq_avg_wt() {
+		return vcq_avg_wt;
+	}
+
+	public static void setVcq_avg_wt(double vcq_avg_wt) {
+		SearchManager.vcq_avg_wt = vcq_avg_wt;
+	}
+
+	public static double getRcq_avg_wt() {
+		return rcq_avg_wt;
+	}
+
+	public static void setRcq_avg_wt(double rcq_avg_wt) {
+		SearchManager.rcq_avg_wt = rcq_avg_wt;
+	}
+
+	private void findCandidates() throws InterruptedException {
         try {
             File queryDirectory = this.getQueryDirectory();
             File[] queryFiles = this.getQueryFiles(queryDirectory);
@@ -854,6 +1279,68 @@ public class SearchManager {
             logger.info("Directory: " + queryDir.getName());
             return queryDir;
         }
+    }
+    
+    
+    private static void writeInFile(){
+    	
+    	boolean isFileUnlocked = false;
+    	try {
+    		FileUtils.touch(new File("run_environment.txt"));
+    	    isFileUnlocked = true;
+    	} catch (IOException e) {
+    	    isFileUnlocked = false;
+    	}
+
+    	if(isFileUnlocked){
+    		BufferedWriter out = null;
+        	try{
+        	    FileWriter fstream = new FileWriter("run_environment.txt", false); //true tells to append data.
+        	    out = new BufferedWriter(fstream);
+        	    out.write(Double.parseDouble(String.format("%.2f",getQlq_avg_wt()))+
+        	    		" "+Double.parseDouble(String.format("%.2f",getQbq_avg_wt()))+
+        	    		" "+Double.parseDouble(String.format("%.2f",getQcq_avg_wt()))+
+        	    		" "+Double.parseDouble(String.format("%.2f",getVcq_avg_wt()))+
+        	    		" "+Double.parseDouble(String.format("%.2f",getRcq_avg_wt()))+
+        	    		" "+Double.parseDouble(String.format("%.2f",getQlq_avg_rt()))+
+        	    		" "+Double.parseDouble(String.format("%.2f",getQbq_avg_rt()))+
+        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQcq_avg_rt()))+
+        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getVcq_avg_rt()))+
+        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getRcq_avg_rt()))+
+        	    		" TOTAL RUNTIME : "+estimated); 
+        	    
+        	    System.out.println(Double.parseDouble(String.format("%.2f",SearchManager.getQlq_avg_wt()))+
+        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQbq_avg_wt()))+
+        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQcq_avg_wt()))+
+        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getVcq_avg_wt()))+
+        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getRcq_avg_wt()))+
+        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQlq_avg_rt()))+
+        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQbq_avg_rt()))+
+        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQcq_avg_rt()))+
+        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getVcq_avg_rt()))+
+        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getRcq_avg_rt()))+
+        	    		" TOTAL RUNTIME : "+estimated);    	         	    
+        	}
+        	catch (IOException e){
+        	    System.err.println("Error: " + e.getMessage());
+        	}
+        	finally{
+        		try{
+    	    	    if(out != null) {
+    	    	        out.close();
+    	    	    }
+        		}
+        		catch (Exception e) {
+        			e.printStackTrace();
+    			}
+        	}
+    	} 
+    	
+    	else {
+    	    // Do stuff you need to do with a file that IS locked
+    		System.out.println("File is currently opened");
+    	}
+    	
     }
 
     private File[] getQueryFiles(File queryDirectory) {

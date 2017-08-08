@@ -6,9 +6,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mondego.indexbased.SearchManager;
+import com.mondego.interfaces.CloneReporterInterface;
 import com.mondego.utility.Util;
 
-public class CloneReporter implements IListener, Runnable {
+public class CloneReporter implements CloneReporterInterface, Runnable {
     private ClonePair cp;
     private static final Logger logger = LogManager.getLogger(CloneReporter.class);
     public CloneReporter(ClonePair cp) {
@@ -24,7 +25,7 @@ public class CloneReporter implements IListener, Runnable {
         }
     }
 
-    private void reportClone(ClonePair cp) {
+    public void reportClone(ClonePair cp) {
         /*
          * System.out.println("QBQ: "+ SearchManager.queryBlockQueue.size()+
          * ", QCQ: "+ SearchManager.queryCandidatesQueue.size()+ ", VCQ: "+
@@ -36,6 +37,12 @@ public class CloneReporter implements IListener, Runnable {
         Util.writeToFile(SearchManager.clonesWriter, cp.toString(), true);
         long estimatedTime = System.nanoTime() - startTime;
         logger.debug(SearchManager.NODE_PREFIX + " CloneReporter, ClonePair " + cp + " in " + estimatedTime/1000 + " micros");
+        
+       
+        
+        SearchManager.updateRunTime(estimatedTime/1000, this.getClass().getTypeName());
+
+        
         cp = null;
         
     }

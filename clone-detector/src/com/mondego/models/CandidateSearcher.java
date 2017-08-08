@@ -13,8 +13,9 @@ import org.apache.logging.log4j.Logger;
 
 import com.mondego.indexbased.SearchManager;
 import com.mondego.indexbased.TermSearcher;
+import com.mondego.interfaces.CandidateSearcherInterface;
 
-public class CandidateSearcher implements IListener, Runnable {
+public class CandidateSearcher implements CandidateSearcherInterface, Runnable {
     private QueryBlock queryBlock;
     private static final Logger logger = LogManager.getLogger(CandidateSearcher.class);
     public CandidateSearcher(QueryBlock queryBlock) {
@@ -53,7 +54,7 @@ public class CandidateSearcher implements IListener, Runnable {
         }
     }
 
-    private void searchCandidates(QueryBlock queryBlock)
+    public void searchCandidates(QueryBlock queryBlock)
             throws IOException, InterruptedException, InstantiationException, IllegalAccessException,
             IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
         long startTime = System.nanoTime();
@@ -68,6 +69,10 @@ public class CandidateSearcher implements IListener, Runnable {
         long estimatedTime = System.nanoTime() - startTime;
         logger.debug(SearchManager.NODE_PREFIX + " CandidateSearcher, QueryBlock " + queryBlock + " in shard "+
 			   shard+" in " + estimatedTime/1000 + " micros");
+        
+        SearchManager.updateRunTime(estimatedTime/1000, this.getClass().getTypeName());
+
+        
         SearchManager.queryCandidatesQueue.send(qc);
     }
 

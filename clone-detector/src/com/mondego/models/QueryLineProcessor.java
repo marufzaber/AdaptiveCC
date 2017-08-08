@@ -14,6 +14,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mondego.indexbased.SearchManager;
+import com.mondego.*;
+
 
 public class QueryLineProcessor implements Runnable {
     private String line;
@@ -57,6 +59,7 @@ public class QueryLineProcessor implements Runnable {
             long estimatedTime = System.nanoTime() - startTime;
             logger.debug(SearchManager.NODE_PREFIX + " QLP, QueryBlock "
                     + queryBlock + " in " + estimatedTime / 1000 + " micros");
+            SearchManager.updateRunTime(estimatedTime/1000, this.getClass().getTypeName());
 
             SearchManager.queryBlockQueue.send(queryBlock);
             // System.out.println(SearchManager.NODE_PREFIX +
