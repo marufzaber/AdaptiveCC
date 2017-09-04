@@ -137,6 +137,8 @@ public class SearchManager {
 
 	public static void setMode(String mode) {
 		SearchManager.mode = mode;
+		
+		System.out.println("set mode called to : "+SearchManager.mode);
 	}
 
 	private static double qlq_avg_rt;
@@ -497,7 +499,9 @@ public class SearchManager {
         	
         	
         	monitorListener = new MonitorListener();
-            monitorListener.start();
+            
+        	
+        	//monitorListener.start();
             
             
             
@@ -574,15 +578,24 @@ public class SearchManager {
     public static void query_record () {
 
         BufferedWriter bw = null;
+        
+        long query = get_Query_count();
+        long estimatedTime = System.nanoTime() - startTime;
+        estimatedTime = estimatedTime / 1000000;
+        
+        
+        if( query == 1000){
+        	monitorListener.setSleeptime(estimatedTime);
+        	monitorListener.start();
+        }
 
         try {
            // APPEND MODE SET HERE
            bw = new BufferedWriter(new FileWriter(filerecord, true));
            
-           long estimatedTime = System.nanoTime() - startTime;
-           estimatedTime = estimatedTime / 1000000;
            
-           bw.write(get_Query_count()+" , "+estimatedTime);
+           
+           bw.write(query+" , "+estimatedTime);
            bw.newLine();
            bw.flush();
         } 
@@ -601,6 +614,8 @@ public class SearchManager {
         } // end try/catch/finally
 
      }
+    
+    
 
     private static void runtime_record (String runtime) {
 

@@ -86,6 +86,8 @@ public class ThreadedChannel<E> implements ThreadedChannelInterface<E>{
     	
     	  if(workerType.getName().contains("QueryLineProcessor") ){
     		  SearchManager.inc_query_count();
+    		  
+    		  
     		  if(SearchManager.get_Query_count() % 1000 == 0){
     			  SearchManager.query_record();
     		  }

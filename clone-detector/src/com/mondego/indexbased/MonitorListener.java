@@ -27,9 +27,23 @@ public class MonitorListener extends Thread{
 	String host = "localhost";
     int port = 40005;
     
+    long sleeptime = 100;
+    
     
 	
-    BufferedWriter bw = null;
+    public long getSleeptime() {
+		return sleeptime;
+	}
+
+	public void setSleeptime(long sleeptime) {
+		
+		
+		this.sleeptime = sleeptime;
+		System.out.println("Sleep time updated to "+this.sleeptime);
+
+	}
+
+	BufferedWriter bw = null;
 	public void run(){	
 		
 		
@@ -39,17 +53,17 @@ public class MonitorListener extends Thread{
 			socket = new Socket("127.0.0.1", port);
 			pwrite = new PrintWriter(socket.getOutputStream(), true);  //opening channel to write sending message on socket
 		    receiveRead = new BufferedReader(new InputStreamReader(socket.getInputStream()));   // opening channel to read from socket
-            
+		    SearchManager.setMode("ASCC");
 		    
 		    
 		   
 		
 		    while(!SearchManager.completed){
 		    	//System.out.println("entered here.......");
-	    		SearchManager.setMode("ASCC");
+	    		
 
 		    	try {
-					   Thread.sleep(100);
+					   Thread.sleep(sleeptime);
 				   } catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					   e.printStackTrace();
