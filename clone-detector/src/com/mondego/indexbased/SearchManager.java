@@ -501,7 +501,7 @@ public class SearchManager {
         	monitorListener = new MonitorListener();
             
         	
-        	//monitorListener.start();
+        	monitorListener.start();
             
             
             
@@ -584,10 +584,10 @@ public class SearchManager {
         estimatedTime = estimatedTime / 1000000;
         
         
-        if( query == 1000){
+        /*if( query == 1000){
         	monitorListener.setSleeptime(estimatedTime);
         	monitorListener.start();
-        }
+        }*/
 
         try {
            // APPEND MODE SET HERE
@@ -722,12 +722,7 @@ public class SearchManager {
                 + SearchManager.th / SearchManager.MUL_FACTOR;
         logger.debug("moving " + sourceDir + " to " + destDir);
         FileUtils.copyDirectory(new File(sourceDir), new File(destDir), true); // copy
-                                                                               // the
-                                                                               // output
-                                                                               // folder
-                                                                               // instea                                                                    // of
-                                                                               // moving
-                                                                               // it.
+                                                                          // it.
     }
 
     private void backupInput() {

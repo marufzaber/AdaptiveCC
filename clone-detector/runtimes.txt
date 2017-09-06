@@ -1,0 +1,7 @@
+  :  init Total run Time: 8772 Millisecond
+  :  index Total run Time: 10360 Millisecond
+SCC  :  search Total run Time: 12965 Millisecond
+SCC  :  search Total run Time: 13816 Millisecond
+SCC  :  search Total run Time: 12956 Millisecond
+SCC  :  search Total run Time: 13653 Millisecond
+SCC  :  search Total run Time: 15288 Millisecond

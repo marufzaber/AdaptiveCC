@@ -27,7 +27,7 @@ public class MonitorListener extends Thread{
 	String host = "localhost";
     int port = 40005;
     
-    long sleeptime = 100;
+    long sleeptime = 1000;
     
     
 	
@@ -59,9 +59,6 @@ public class MonitorListener extends Thread{
 		   
 		
 		    while(!SearchManager.completed){
-		    	//System.out.println("entered here.......");
-	    		
-
 		    	try {
 					   Thread.sleep(sleeptime);
 				   } catch (InterruptedException e) {
@@ -142,10 +139,11 @@ public class MonitorListener extends Thread{
     	catch (IOException e) {
 			// TODO Auto-generated catch block
 			
-    		System.out.println("tocu tocusssss ");
-    		SearchManager.setMode("SCC");
     		
-    		e.printStackTrace();
+    		SearchManager.setMode("SCC");
+    		System.out.println("Monitor was not found, setting to SCC mode");
+    		
+    		
 		}
     	
     	
@@ -156,9 +154,9 @@ public class MonitorListener extends Thread{
 				   socket.close();
 				pwrite.close();
 				receiveRead.close();
-			} catch (IOException e) {
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				//e.printStackTrace();
 			}
     	}
 	}
@@ -170,168 +168,13 @@ public class MonitorListener extends Thread{
     		String [] split = config.split(" ");
     		
     		for(int i=0;i<5;i++){
-    			
-    			
-    			
-				current_configuration[i] = Integer.parseInt(split[i]);
+  				current_configuration[i] = Integer.parseInt(split[i]);
 			}
     	}
 		
 		return current_configuration;
 	}
 	
-	/*private void listenMonitor(){
-		
-        try{
-        	
-        	
-        	InputStream is = socket.getInputStream();
-            InputStreamReader isr = new InputStreamReader(is);
-            BufferedReader br = new BufferedReader(isr);
-            
-            
-            
-            String config = br.readLine();
-        	System.out.println("reading "+ config);
-   
-        	if(config != null){
-        		String [] split = config.split(" ");
-        		for(int i=0;i<5;i++){
-					current_configuration[0] = Integer.parseInt(split[i]);
-				}
-        	}
-        	
-        }catch(Exception e){
-        	e.printStackTrace();
-        }
-        
-	}*/
-			
-	/*private boolean readFromFile(){
-		boolean update = false;
-		try (BufferedReader br = new BufferedReader(new FileReader(file_to_read))) {
-			String sCurrentLine;
-			if ((sCurrentLine = br.readLine()) != null) {
-				String split[] = sCurrentLine.split(" ");
-				if(split[split.length-1].equals("DIRTY")){
-					for(int i=0;i<5;i++){
-						current_configuration[0] = Integer.parseInt(split[i]);
-					}
-					update = true;
-				}
-				else{
-					System.out.println("File already have been read");
-				}
-			}
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-		}	
-		return update;
-	}
-	*/
 	
 	
-	private void send_data_to_monitor(){
-    	
-		
-       
-        try{
-	       	
-	        //Send the message to the server
-	        
-	
-	        
-	        bw.write(Double.parseDouble(String.format("%.2f",SearchManager.getQlq_avg_wt()))+
-    	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQbq_avg_wt()))+
-    	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQcq_avg_wt()))+
-    	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getVcq_avg_wt()))+
-    	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getRcq_avg_wt()))+
-    	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQlq_avg_rt()))+
-    	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQbq_avg_rt()))+
-    	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQcq_avg_rt()))+
-    	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getVcq_avg_rt()))+
-    	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getRcq_avg_rt()))); 
-    	    
-    	    System.out.println(Double.parseDouble(String.format("%.2f",SearchManager.getQlq_avg_wt()))+
-    	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQbq_avg_wt()))+
-    	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQcq_avg_wt()))+
-    	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getVcq_avg_wt()))+
-    	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getRcq_avg_wt()))+
-    	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQlq_avg_rt()))+
-    	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQbq_avg_rt()))+
-    	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQcq_avg_rt()))+
-    	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getVcq_avg_rt()))+
-    	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getRcq_avg_rt()))); 
-	        
-	        
-	        bw.flush();
-        }
-        catch(Exception e){
-        	e.printStackTrace();
-        }
-        
-    }
-	
-	/*private void writeInFile(){
-    	
-    	boolean isFileUnlocked = false;
-    	try {
-    		FileUtils.touch(new File(file_to_write));
-    	    isFileUnlocked = true;
-    	} catch (IOException e) {
-    	    isFileUnlocked = false;
-    	}
-
-    	if(isFileUnlocked){
-    		BufferedWriter out = null;
-        	try{
-        	    FileWriter fstream = new FileWriter("run_environment.txt", false); //true tells to append data.
-        	    out = new BufferedWriter(fstream);
-        	    out.write(Double.parseDouble(String.format("%.2f",SearchManager.getQlq_avg_wt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQbq_avg_wt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQcq_avg_wt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getVcq_avg_wt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getRcq_avg_wt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQlq_avg_rt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQbq_avg_rt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQcq_avg_rt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getVcq_avg_rt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getRcq_avg_rt()))+
-        	    		" DIRTY"); 
-        	    
-        	    System.out.println(Double.parseDouble(String.format("%.2f",SearchManager.getQlq_avg_wt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQbq_avg_wt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQcq_avg_wt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getVcq_avg_wt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getRcq_avg_wt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQlq_avg_rt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQbq_avg_rt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQcq_avg_rt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getVcq_avg_rt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getRcq_avg_rt()))+
-        	    		" DIRTY");    	         	    
-        	}
-        	catch (IOException e){
-        	    System.err.println("Error: " + e.getMessage());
-        	}
-        	finally{
-        		try{
-    	    	    if(out != null) {
-    	    	        out.close();
-    	    	    }
-        		}
-        		catch (Exception e) {
-        			e.printStackTrace();
-    			}
-        	}
-    	}  	
-    	else {
-    	    // Do stuff you need to do with a file that IS locked
-    		System.out.println("File is currently opened");
-    	}  	
-    }*/
-
-	
-
 }

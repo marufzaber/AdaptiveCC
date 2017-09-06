@@ -45,10 +45,7 @@ public class ThreadedChannel<E> implements ThreadedChannelInterface<E>{
     	//this.executor = Executors.newFixedThreadPool(nThreads);
     	
     	this.workerType = clazz;
-    	
-        
-        
-    	
+   	
     	executor = new ThreadPoolExecutor(1, // core size
     		    100, // max size
     		    10*60, // idle timeout
@@ -133,68 +130,6 @@ public class ThreadedChannel<E> implements ThreadedChannelInterface<E>{
     }
     
     
-    
-   /* private void writeInFile(){
-    	
-    	boolean isFileUnlocked = false;
-    	try {
-    		FileUtils.touch(new File("run_environment.txt"));
-    	    isFileUnlocked = true;
-    	} catch (IOException e) {
-    	    isFileUnlocked = false;
-    	}
-
-    	if(isFileUnlocked){
-    		BufferedWriter out = null;
-        	try{
-        	    FileWriter fstream = new FileWriter("run_environment.txt", false); //true tells to append data.
-        	    out = new BufferedWriter(fstream);
-        	    out.write(Double.parseDouble(String.format("%.2f",SearchManager.getQlq_avg_wt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQbq_avg_wt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQcq_avg_wt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getVcq_avg_wt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getRcq_avg_wt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQlq_avg_rt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQbq_avg_rt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQcq_avg_rt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getVcq_avg_rt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getRcq_avg_rt()))+
-        	    		" DIRTY"); 
-        	    
-        	    System.out.println(Double.parseDouble(String.format("%.2f",SearchManager.getQlq_avg_wt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQbq_avg_wt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQcq_avg_wt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getVcq_avg_wt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getRcq_avg_wt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQlq_avg_rt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQbq_avg_rt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getQcq_avg_rt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getVcq_avg_rt()))+
-        	    		" "+Double.parseDouble(String.format("%.2f",SearchManager.getRcq_avg_rt()))+
-        	    		" DIRTY");    	         	    
-        	}
-        	catch (IOException e){
-        	    System.err.println("Error: " + e.getMessage());
-        	}
-        	finally{
-        		try{
-    	    	    if(out != null) {
-    	    	        out.close();
-    	    	    }
-        		}
-        		catch (Exception e) {
-        			e.printStackTrace();
-    			}
-        	}
-    	} 
-    	
-    	else {
-    	    // Do stuff you need to do with a file that IS locked
-    		System.out.println("File is currently opened");
-    	}
-    	
-    }*/
-
     public void shutdown() {
         this.executor.shutdown();
         try {
