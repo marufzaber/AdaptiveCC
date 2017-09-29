@@ -21,6 +21,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.commons.io.FileUtils;
 
+import com.mondego.indexbased.MonitorListener;
 import com.mondego.indexbased.SearchManager;
 import com.mondego.interfaces.ThreadedChannelInterface;
 
@@ -85,6 +86,14 @@ public class ThreadedChannel<E> implements ThreadedChannelInterface<E>{
     		  SearchManager.inc_query_count();
     		  
     		  
+    		  synchronized (SearchManager.notifier) {
+    			  
+    			  long count = SearchManager.get_Query_count();
+    			  if( count % 1000 == 0 && count>0){
+        			  //SearchManager.set_sleep_time(250);        			  
+        			  SearchManager.notifier.notify();
+        		  }
+			  }
     		  if(SearchManager.get_Query_count() % 1000 == 0){
     			  SearchManager.query_record();
     		  }

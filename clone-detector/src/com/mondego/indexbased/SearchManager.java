@@ -56,6 +56,8 @@ import com.mondego.utility.TokensFileReader;
 import com.mondego.utility.Util;
 import com.mondego.validation.TestGson;
 
+
+
 /**
  * @author vaibhavsaini
  * 
@@ -122,6 +124,8 @@ public class SearchManager {
     private static String mode ="";
     
     private static long query_count;
+    
+    //public static Semaphore semaphore;
     
     public static long get_Query_count() {
 		return query_count;
@@ -196,11 +200,15 @@ public class SearchManager {
 	public static boolean completed = false;
 	
     public static String filerecord = "";
+    
+    public static Object notifier;
 
 
     public SearchManager(String[] args) throws IOException {
         
         query_count = 0;
+        
+        notifier = new Object();
     	
     	SearchManager.clonePairsCount = 0;
         this.cloneHelper = new CloneHelper();
@@ -239,6 +247,9 @@ public class SearchManager {
         this.qcq_rt_count = 0;
         this.vcq_rt_count = 0;
         this.rcq_rt_count = 0;
+        
+        //this.semaphore = new Semaphore(0);
+        Random rand = new Random();
         
         
         SearchManager.ACTION = args[0];
@@ -509,7 +520,11 @@ public class SearchManager {
             long timeStartSearch = System.currentTimeMillis();
             logger.info(NODE_PREFIX + " Starting to search");
             Random rand = new Random();
-            filerecord = mode + rand.nextInt(10000)+".txt";
+           
+            //filerecord = mode + rand.nextInt(10000)+".txt";
+            
+            
+            filerecord = mode +rand.nextInt(100)+".txt";
             
             theInstance.populateCompletedQueries();
             theInstance.findCandidates();
@@ -570,30 +585,35 @@ public class SearchManager {
         completed  = true;
         
         logger.info("completed on " + SearchManager.NODE_PREFIX);
-        
-        
    }
    
+    
+    public static void set_sleep_time(long time){
+        
+    	//SearchManager.semaphore.release();
+    	
+    	long estimatedTime = System.nanoTime() - startTime;
+        estimatedTime = estimatedTime / 1000000;
+        monitorListener.setSleeptime(estimatedTime);
+       
+        
+    }
+    
+    
     
     public static void query_record () {
 
         BufferedWriter bw = null;
         
         long query = get_Query_count();
+
+        
         long estimatedTime = System.nanoTime() - startTime;
         estimatedTime = estimatedTime / 1000000;
         
-        
-        /*if( query == 1000){
-        	monitorListener.setSleeptime(estimatedTime);
-        	monitorListener.start();
-        }*/
-
         try {
            // APPEND MODE SET HERE
            bw = new BufferedWriter(new FileWriter(filerecord, true));
-           
-           
            
            bw.write(query+" , "+estimatedTime);
            bw.newLine();
@@ -792,8 +812,44 @@ public class SearchManager {
         return SearchManager.totalNodes;
     }
     
+    private static void record_intermediate_configs(int []configuration){
+    	
+    	BufferedWriter bw = null;
+    	Random rand = new Random();
+
+        try {
+           // APPEND MODE SET HERE
+           bw = new BufferedWriter(new FileWriter("Intermediate_configs_1000"+".txt", true));
+           
+           long estimatedTime = System.nanoTime() - startTime;
+           estimated = estimatedTime / 1000;
+           
+          
+           runtime_record (SearchManager.ACTION +" Total run Time: " + (estimatedTime / 1000000) + " Millisecond");
+           
+           bw.write(estimatedTime / 1000000+"  :  "+configuration[0]+" - "+
+        		   configuration[1]+" - "+configuration[2]+" - "
+        		   +configuration[3]+" - "+configuration[4]);
+           bw.newLine();
+           bw.flush();
+        } 
+        
+        catch (IOException ioe) {
+        	ioe.printStackTrace();
+        } 
+        finally {                       
+        	if (bw != null) 
+        		try {
+        			bw.close();
+        		} catch (IOException ioe2) { }
+        } 
+
+    }
+    
     public static void update_thread_count(int [] configuration){
     	
+    	
+    	 	
     	if(configuration[0] != qlq_thread_count){
     		System.out.println("Updating pool-2 cause : config "+qlq_thread_count+" but now "
     				+configuration[0]);
@@ -831,7 +887,7 @@ public class SearchManager {
     		reportCloneQueue.update_thread(configuration[4]);
     	}
         
-        
+        record_intermediate_configs(configuration);
         
     }
 
