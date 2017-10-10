@@ -48,7 +48,7 @@ public class ThreadedChannel<E> implements ThreadedChannelInterface<E>{
     	
     	this.workerType = clazz;
    	
-    	executor = new ThreadPoolExecutor(1, // core size
+    	executor = new ThreadPoolExecutor(nThreads, // core size
     		    100, // max size
     		    10*60, // idle timeout
     		    TimeUnit.SECONDS,
