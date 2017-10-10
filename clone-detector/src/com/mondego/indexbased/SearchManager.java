@@ -498,15 +498,7 @@ public class SearchManager {
             theInstance.timeIndexing = System.currentTimeMillis() - begin_time;
         } else if (SearchManager.ACTION.equalsIgnoreCase(ACTION_SEARCH)) {
            // monitorListener = new MonitorListener();
-        	qlq_thread_count = 1;
         	
-        	qbq_thread_count = 1;
-        			
-        	qcq_thread_count = 1;
-        			
-        	vcq_thread_count = 1;
-        			
-        	rcq_thread_count = 1;
         	
         	
         	monitorListener = new MonitorListener();

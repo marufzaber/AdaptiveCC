@@ -53,7 +53,7 @@ public class ThreadedChannel<E> implements ThreadedChannelInterface<E>{
     		    TimeUnit.SECONDS,
     		    new ArrayBlockingQueue<Runnable>(20));
         
-        this.semaphore = new Semaphore(thread_count + 2);
+        this.semaphore = new Semaphore(thread_count);
         
         
         //System.out.println("for "+clazz.getName()+" the thread number is "+executor.getCorePoolSize());
@@ -74,8 +74,6 @@ public class ThreadedChannel<E> implements ThreadedChannelInterface<E>{
     	thread_count = nThread;
     	
     	executor.setCorePoolSize(thread_count);//newLimit is new size of the pool 
-    	
- 	  	
     }
 
     public void send(E e) throws InstantiationException, IllegalAccessException,
