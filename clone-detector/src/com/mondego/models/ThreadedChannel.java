@@ -12,6 +12,7 @@ import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -51,7 +52,7 @@ public class ThreadedChannel<E> implements ThreadedChannelInterface<E>{
     		    100, // max size
     		    10*60, // idle timeout
     		    TimeUnit.SECONDS,
-    		    new ArrayBlockingQueue<Runnable>(20));
+    		    new LinkedBlockingQueue<Runnable>());
         
         this.semaphore = new Semaphore(thread_count);
         
